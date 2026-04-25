@@ -1,0 +1,32 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    telegram_id BIGINT UNIQUE NOT NULL,
+    wallet VARCHAR(128),
+    premium_until TIMESTAMP,
+    referral_code VARCHAR(32) UNIQUE NOT NULL,
+    ai_requests_today INTEGER NOT NULL DEFAULT 0,
+    whale_alerts_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    price_alerts_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    language VARCHAR(8) NOT NULL DEFAULT 'ru',
+    is_banned BOOLEAN NOT NULL DEFAULT FALSE,
+    referrals_count INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    prompt TEXT NOT NULL,
+    response TEXT NOT NULL,
+    model VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    memo VARCHAR(8) UNIQUE NOT NULL,
+    tx_hash VARCHAR(256),
+    amount_ton DOUBLE PRECISION NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
