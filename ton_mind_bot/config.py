@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     premium_days: int = 30
     whale_threshold_ton: float = 10_000
     algo_holding_threshold: float = 1_000
+    token_growth_threshold_pct: float = 1000
+    token_market_cap_threshold: float = 1_000_000
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

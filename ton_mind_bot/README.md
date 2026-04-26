@@ -10,6 +10,7 @@ Production-ready async Telegram bot (aiogram 3.7) for TON blockchain analytics.
 - OpenAI API
 - Toncenter API
 
+- DexScreener token scan: active TON tokens with growth 1000%+ and market-cap threshold notifications.
 ## Run locally
 ```bash
 cp .env.example .env

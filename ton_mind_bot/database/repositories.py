@@ -54,6 +54,10 @@ class UserRepository:
         user.price_alerts_enabled = not user.price_alerts_enabled
         await self.session.commit()
 
+
+    async def get_price_alert_users(self) -> list[User]:
+        result = await self.session.execute(select(User).where(User.price_alerts_enabled.is_(True)))
+        return list(result.scalars().all())
     async def activate_premium(self, user: User, days: int | None = None) -> None:
         period = days or settings.premium_days
         base = user.premium_until if user.premium_until and user.premium_until > datetime.utcnow() else datetime.utcnow()

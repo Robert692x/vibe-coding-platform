@@ -10,6 +10,7 @@ from ton_mind_bot.database.models import User
 from ton_mind_bot.database.repositories import MessageRepository, PaymentRepository, UserRepository
 from ton_mind_bot.keyboards.main import main_menu
 from ton_mind_bot.services.dex import DexService
+from ton_mind_bot.services.dexscreener import DexScreenerService
 from ton_mind_bot.services.market import MarketService
 from ton_mind_bot.services.openai_service import OpenAIService
 from ton_mind_bot.services.toncenter import ToncenterService
@@ -20,6 +21,7 @@ market_service = MarketService()
 toncenter_service = ToncenterService()
 openai_service = OpenAIService()
 dex_service = DexService()
+dexscreener_service = DexScreenerService()
 
 
 @router.message(CommandStart())
@@ -118,6 +120,35 @@ async def alerts_screen(message: Message, user: User, db_session: AsyncSession):
             whales="ON" if user.whale_alerts_enabled else "OFF",
         )
     )
+
+
+
+
+@router.message(lambda m: (m.text or '').lower() in {"токен скан", "token scan"})
+async def token_scan_screen(message: Message, user: User, db_session: AsyncSession):
+    repo = UserRepository(db_session)
+    if not user.price_alerts_enabled:
+        await repo.toggle_price_alerts(user)
+
+    tokens = await dexscreener_service.explosive_tokens(
+        min_growth_pct=settings.token_growth_threshold_pct,
+        min_market_cap=settings.token_market_cap_threshold,
+        limit=10,
+    )
+    if not tokens:
+        await message.answer(
+            "<b>Токен скан</b>\nСейчас нет монет на TON DEX с ростом 1000%+ и заданной капитализацией.\n"
+            "Уведомления включены, отправим сигнал при появлении."
+        )
+        return
+
+    rows = "\n".join(
+        [
+            f"• <b>{tkn['symbol']}</b> | {tkn['growth_24h']:.1f}% | MC ${tkn['market_cap']:,.0f}\n{tkn['url']}"
+            for tkn in tokens
+        ]
+    )
+    await message.answer("<b>Токен скан (TON)</b>\n" + rows + "\n\nУведомления включены.")
 
 
 @router.message(lambda m: m.text in {"AI Аналитик", "AI Analyst"})

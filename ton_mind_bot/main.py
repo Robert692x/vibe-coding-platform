@@ -11,6 +11,7 @@ from ton_mind_bot.handlers.main import router
 from ton_mind_bot.middleware.auth import AuthMiddleware
 from ton_mind_bot.middleware.throttle import ThrottleMiddleware
 from ton_mind_bot.services.payment_scanner import run_payment_scanner
+from ton_mind_bot.services.token_growth_notifier import TokenGrowthNotifier
 
 
 async def main() -> None:
@@ -25,6 +26,9 @@ async def main() -> None:
     dp.message.middleware(ThrottleMiddleware(redis))
     dp.include_router(router)
 
+    token_notifier = TokenGrowthNotifier(bot, session_factory, redis)
+    token_notifier_task = asyncio.create_task(token_notifier.run())
+        token_notifier_task.cancel()
     scanner_task = asyncio.create_task(run_payment_scanner(bot, session_factory))
     try:
         await dp.start_polling(bot)
